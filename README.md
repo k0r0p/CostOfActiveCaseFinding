@@ -1,4 +1,5 @@
 CostOfActiveCaseFinding
 =======================
-
-How Much is a Case Worth? Estimating the Population-Level Impact and Cost-Effectiveness of Active Case Finding for Tuberculosis
+Code for
+"How Much is TB Screening Worth? Estimating the Value of Active Case Finding for Tuberculosis"
+(coming soon)
