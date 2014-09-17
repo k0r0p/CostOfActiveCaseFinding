@@ -40,7 +40,9 @@ dxdt.TBHIV3 <- function(t,y,parms){
         N <- sum(S + Lf + Ls + Ps + Asp + Asn + Aep + Tx + Rtx)
 
         ## may want to add a real hiv force of infection here later
-        foi <- as.numeric(Asp %*% c(beta.sp/N*rep(1,4))  + Asn %*% c((beta.sp/N)*phi.sn) + Ps %*% c((beta.sp/N)*phi.ps))
+        foi <- as.numeric(Asp %*% c(beta.sp/N*rep(1,4)) +
+                          Asn %*% c((beta.sp/N)*phi.sn) +
+                          Ps %*% c((beta.sp/N)*phi.ps))
 
         theta.sp.c <- theta.sp + theta.spI
         theta.sn.c <- theta.sn + theta.snI
@@ -48,83 +50,83 @@ dxdt.TBHIV3 <- function(t,y,parms){
 
         dS <- dLf <- dLs <- dPs <- dAsp <- dAsn <- dAep <- dTx <- dRtx <- array(0,dim=c(ac,hivc))
 
-
-                                        #hiv uninfected susceptibles
+        ##hiv uninfected susceptibles
         dS  <- S*(nu - foi - foi.hiv  - mu.hiv - chi.elg - chi.tx - delta) +
-            c(0,(S*foi.hiv)[-hivc]) +
-                c(0,(S*chi.elg)[-hivc]) +
-                    c(0,(S*chi.tx)[-hivc])
+        c(0,(S*foi.hiv)[-hivc]) +
+        c(0,(S*chi.elg)[-hivc]) +
+        c(0,(S*chi.tx)[-hivc])
 
         ## keeping population size constant
         dS[1,1] <- dS[1,1] +
-            Asp %*% mu.sp + Asn %*% mu.sn + Aep %*% mu.ep +    ## TB Deaths
-                (S + Lf + Ls + Ps + Asp + Asn + Aep + Tx + Rtx) %*% delta +  ## Old Age
-                    (S + Lf + Ls + Ps + Asp + Asn + Aep + Tx + Rtx) %*% mu.hiv   ## HIV Deaths
+        Asp %*% mu.sp + Asn %*% mu.sn + Aep %*% mu.ep +    ## TB Deaths
+        (S + Lf + Ls + Ps + Asp + Asn + Aep + Tx + Rtx) %*% delta +  ## Old Age
+        (S + Lf + Ls + Ps + Asp + Asn + Aep + Tx + Rtx) %*% mu.hiv   ## HIV Deaths
 
         ## Latent fast
-        dLf <- Lf*(nu - gamma.lf.ls - rho.lf -
+        dLf <-Lf*(nu - gamma.lf.ls - rho.lf -
                    foi.hiv - mu.hiv - chi.elg - chi.tx - delta) +
-                       foi*(Ls*phi.l + Rtx*phi.l + S) +
-                           c(0,(Lf*foi.hiv)[-hivc]) +
-                               c(0,(Lf*chi.elg)[-hivc]) +
-                                   c(0,(Lf*chi.tx)[-hivc])
+                   foi*(Ls*phi.l + Rtx*phi.l + S) +
+                   c(0,(Lf*foi.hiv)[-hivc]) +
+                   c(0,(Lf*chi.elg)[-hivc]) +
+                   c(0,(Lf*chi.tx)[-hivc])
 
         ## Latent slow (remote infection)
         dLs <- Ls*(nu - foi*phi.l - rho.ls -
                    foi.hiv - mu.hiv - chi.elg - chi.tx - delta) +
-                       Lf * gamma.lf.ls +
-                           Rtx*gamma.rtx.ls +
-                               c(0,(Ls*foi.hiv)[-hivc]) +
-                                   c(0,(Ls*chi.elg)[-hivc]) +
-                                       c(0,(Ls*chi.tx)[-hivc])
+                   Lf * gamma.lf.ls +
+                   Rtx*gamma.rtx.ls +
+                   c(0,(Ls*foi.hiv)[-hivc]) +
+                   c(0,(Ls*chi.elg)[-hivc]) +
+                   c(0,(Ls*chi.tx)[-hivc])
 
         ## Pre-symptomatic period
         dPs <- Ps*(nu - rho.ps - zeta.sn -
                    foi.hiv - mu.hiv - chi.elg - chi.tx - delta) +
-                       Lf*rho.lf + Ls*rho.ls +
-                           c(0,(Ps*foi.hiv)[-hivc]) +
-                               c(0,(Ps*chi.elg)[-hivc]) +
-                                   c(0,(Ps*chi.tx)[-hivc])
+                   Lf*rho.lf + Ls*rho.ls +
+                   c(0,(Ps*foi.hiv)[-hivc]) +
+                   c(0,(Ps*chi.elg)[-hivc]) +
+                   c(0,(Ps*chi.tx)[-hivc])
         ## Smear Positive
         dAsp <- Asp*(nu - mu.sp - theta.sp.c - zeta.sp -
                      foi.hiv - mu.hiv - chi.elg - chi.tx - delta) +
-                         (Ps*rho.ps + Rtx*rho.rel)*pi.sp*(1-pi.ep) +
-                             c(0,(Asp*foi.hiv)[-hivc]) +
-                                 c(0,(Asp*chi.elg)[-hivc]) +
-                                     c(0,(Asp*chi.tx)[-hivc])
+                     (Ps*rho.ps + Rtx*rho.rel)*pi.sp*(1-pi.ep) +
+                     c(0,(Asp*foi.hiv)[-hivc]) +
+                     c(0,(Asp*chi.elg)[-hivc]) +
+                     c(0,(Asp*chi.tx)[-hivc])
 
         dAsn <- Asn*(nu - mu.sn - theta.sn.c - zeta.sn -
                      foi.hiv - mu.hiv - chi.elg - chi.tx - delta) +
-                         (Ps*rho.ps + Rtx*rho.rel)*(1-pi.sp)*(1-pi.ep) +
-                             c(0,(Asn*foi.hiv)[-hivc]) +
-                                 c(0,(Asn*chi.elg)[-hivc]) +
-                                     c(0,(Asn*chi.tx)[-hivc])
+                     (Ps*rho.ps + Rtx*rho.rel)*(1-pi.sp)*(1-pi.ep) +
+                     c(0,(Asn*foi.hiv)[-hivc]) +
+                     c(0,(Asn*chi.elg)[-hivc]) +
+                     c(0,(Asn*chi.tx)[-hivc])
 
         dAep <- Aep*(nu - mu.ep - theta.ep.c - zeta.ep -
                      foi.hiv - mu.hiv - chi.elg - chi.tx - delta) +
-                         (Ps*rho.ps + Rtx*rho.rel)*pi.ep+
-                             c(0,(Aep*foi.hiv)[-hivc]) +
-                                 c(0,(Aep*chi.elg)[-hivc]) +
-                                     c(0,(Aep*chi.tx)[-hivc])
+                     (Ps*rho.ps + Rtx*rho.rel)*pi.ep+
+                     c(0,(Aep*foi.hiv)[-hivc]) +
+                     c(0,(Aep*chi.elg)[-hivc]) +
+                     c(0,(Aep*chi.tx)[-hivc])
 
         dTx <- Tx*(nu - gamma.tx.rtx -
                    foi.hiv - mu.hiv - chi.elg - chi.tx - delta) +
-                       Asp*theta.sp.c +
-                           Asn*theta.sn.c +
-                               Aep*theta.ep.c +
-                                   c(0,(Tx*foi.hiv)[-hivc]) +
-                                       c(0,(Tx*chi.elg)[-hivc]) +
-                                           c(0,(Tx*chi.tx)[-hivc])
+                   Asp*theta.sp.c +
+                   Asn*theta.sn.c +
+                   Aep*theta.ep.c +
+                   c(0,(Tx*foi.hiv)[-hivc]) +
+                   c(0,(Tx*chi.elg)[-hivc]) +
+                   c(0,(Tx*chi.tx)[-hivc])
 
         dRtx <- Rtx*(nu - gamma.rtx.ls - rho.rel - foi*phi.l -
                      foi.hiv - mu.hiv - chi.elg - chi.tx - delta) +
-                         Asp*zeta.sp + (Asn + Ps)*zeta.sn + Aep*zeta.ep +
-                             Tx*(gamma.tx.rtx) +
-                                 c(0,(Rtx*foi.hiv)[-hivc]) +
-                                     c(0,(Rtx*chi.elg)[-hivc]) +
-                                         c(0,(Rtx*chi.tx)[-hivc])
+                     Asp*zeta.sp + (Asn + Ps)*zeta.sn + Aep*zeta.ep +
+                     Tx*(gamma.tx.rtx) +
+                     c(0,(Rtx*foi.hiv)[-hivc]) +
+                     c(0,(Rtx*chi.elg)[-hivc]) +
+                     c(0,(Rtx*chi.tx)[-hivc])
 
         list(c(dS,dLf,dLs,dPs,dAsp,dAsn,dAep,dTx,dRtx))
+
     })}
 
 
@@ -258,42 +260,44 @@ addColNames <- function(mod,time=T,ext=F,ac=1){
     ts <- c()
     if (time) ts <- "time"
 
-    tmp  <-  c(ts,paste0("S",1:ac),
-               paste0("hS",1:ac),
-               paste0("aS",1:ac),
-               paste0("nS",1:ac),
-               paste0("Lf",1:ac),
-               paste0("hLf",1:ac),
-               paste0("aLf",1:ac),
-               paste0("nLf",1:ac),
-               paste0("Ls",1:ac),
-               paste0("hLs",1:ac),
-               paste0("aLs",1:ac),
-               paste0("nLs",1:ac),
-               paste0("Ps",1:ac),
-               paste0("hPs",1:ac),
-               paste0("aPs",1:ac),
-               paste0("nPs",1:ac),
-               paste0("Asp",1:ac),
-               paste0("hAsp",1:ac),
-               paste0("aAsp",1:ac),
-               paste0("nAsp",1:ac),
-               paste0("Asn",1:ac),
-               paste0("hAsn",1:ac),
-               paste0("aAsn",1:ac),
-               paste0("nAsn",1:ac),
-               paste0("Aep",1:ac),
-               paste0("hAep",1:ac),
-               paste0("aAep",1:ac),
-               paste0("nAep",1:ac),
-               paste0("Tx",1:ac),
-               paste0("hTx",1:ac),
-               paste0("aTx",1:ac),
-               paste0("nTx",1:ac),
-               paste0("Rtx",1:ac),
-               paste0("hRtx",1:ac),
-               paste0("aRtx",1:ac),
-               paste0("nRtx",1:ac))
+
+        tmp  <-  c(ts,paste0("S",1:ac),
+                   paste0("hS",1:ac),
+                   paste0("aS",1:ac),
+                   paste0("nS",1:ac),
+                   paste0("Lf",1:ac),
+                   paste0("hLf",1:ac),
+                   paste0("aLf",1:ac),
+                   paste0("nLf",1:ac),
+                   paste0("Ls",1:ac),
+                   paste0("hLs",1:ac),
+                   paste0("aLs",1:ac),
+                   paste0("nLs",1:ac),
+                   paste0("Ps",1:ac),
+                   paste0("hPs",1:ac),
+                   paste0("aPs",1:ac),
+                   paste0("nPs",1:ac),
+                   paste0("Asp",1:ac),
+                   paste0("hAsp",1:ac),
+                   paste0("aAsp",1:ac),
+                   paste0("nAsp",1:ac),
+                   paste0("Asn",1:ac),
+                   paste0("hAsn",1:ac),
+                   paste0("aAsn",1:ac),
+                   paste0("nAsn",1:ac),
+                   paste0("Aep",1:ac),
+                   paste0("hAep",1:ac),
+                   paste0("aAep",1:ac),
+                   paste0("nAep",1:ac),
+                   paste0("Tx",1:ac),
+                   paste0("hTx",1:ac),
+                   paste0("aTx",1:ac),
+                   paste0("nTx",1:ac),
+                   paste0("Rtx",1:ac),
+                   paste0("hRtx",1:ac),
+                   paste0("aRtx",1:ac),
+                   paste0("nRtx",1:ac))
+
     if (ext) {
 
         tmp <- c(tmp,paste0("CI",1:ac),paste0("hCI",1:ac),paste0("aCI",1:ac),
@@ -531,7 +535,7 @@ fitIncCDR <- function(initial.state,
                                         #update initial state
 
         out.theta <- optim(fit.pars[2],
-                           fn=IncObFunc,
+                           fn=incObFunc,
                            params=params,
                            state=initial.state,
                            target.ci=target.ci,
@@ -696,11 +700,13 @@ plotOut <- function(out,pop.adj=T,overlay=FALSE,legend=TRUE){
 ##' @return vector, prevalance and prop.on ARTs for both age classes
 ##' @author Andrew Azman
 hIVStats <- function(mod,full=F){
+
     if(!is.null(nrow(mod)) && colnames(mod)[1] == "time") mod <- mod[,-1]
 
     if(is.null(nrow(mod)) && names(mod)[1] == "time") mod <- mod[-1]
 
     if(!is.null(nrow(mod))){
+        #recover()
         ## assuming that the first CI column is the first one of cumulative statistics
         first.column.of.cum.stats <- grep("CI",colnames(mod))
 
@@ -708,9 +714,14 @@ hIVStats <- function(mod,full=F){
             mod <- mod[,-c(first.column.of.cum.stats[1]:ncol(mod))]
         }
 
-        prev.1 <- apply(mod[,grep("^[han]",colnames(mod))],1,sum)/rowSums(mod[,grep(".+1$",colnames(mod))])
-        prop.on.art.1 <- rowSums(mod[,grep("^a.+1$",colnames(mod))])/rowSums(mod[,grep("(^a.+1$)|(^n.+1$)",colnames(mod))])
-                                        # only considering those eligible
+        prev.1 <-
+        apply(mod[,grep("^[han]",colnames(mod))],1,sum)/
+        rowSums(mod[,grep(".+1$",colnames(mod))])
+        ## note the the labels for n and a are actually reveresed
+        prop.on.art.1 <-
+        rowSums(mod[,grep("^n.+1$",colnames(mod))])/
+        rowSums(mod[,grep("(^a.+1$)|(^n.+1$)",colnames(mod))])
+        ## only considering those eligible
 
         if (full) {
             return(list(prev.1,prop.on.art.1))
@@ -718,6 +729,7 @@ hIVStats <- function(mod,full=F){
             return(c(hiv.prev.1=tail(prev.1,1),prop.art.1=tail(prop.on.art.1,1)))
         }
     } else {
+
         ## assuming that the first CI column is the first one of cumulative statistics
         first.column.of.cum.stats <- grep("CI",names(mod))
 
@@ -726,7 +738,9 @@ hIVStats <- function(mod,full=F){
         }
 
         prev.1 <- sum(mod[grep("^[han]",names(mod))])/sum(mod[grep(".+1$",names(mod))])
-        prop.on.art.1 <- sum(mod[grep("^a.+1$",names(mod))])/sum(mod[grep("(^a.+1$)|(^n.+1$)",names(mod))])
+        ## note the the labels for n and a are actually reveresed
+        prop.on.art.1 <- sum(mod[grep("^n.+1$",names(mod))])/
+        sum(mod[grep("(^a.+1$)|(^n.+1$)",names(mod))])
         return(c(hiv.prev.1=prev.1,prop.art.1=prop.on.art.1))
     }
 }
@@ -779,12 +793,16 @@ fitHIV <- function(params,
                    prop.art.1){
 
     start.pars <- c(params$chi.tx[3],params$foi.hiv[1])
-    fit <- optim(start.pars,fn=hIVObjective,
-                 full.params=params,state=start.state,
+    fit <- optim(start.pars,
+                 fn=hIVObjective,
+                 full.params=params,
+                 state=start.state,
                  prev.1=prev.1,
                  prop.art.1=prop.art.1,
-                 method="L-BFGS-B",lower=c(1e-5,1e-10),
-                 upper=c(365,1),control=list(parscale=c(1,.1)))
+                 method="L-BFGS-B",
+                 lower=c(1e-5,1e-10),
+                 upper=c(365,1),
+                 control=list(parscale=c(1,.1)))
     fit
 }
 
@@ -859,6 +877,7 @@ iterativeHIVTBFit <- function(start.state,
     params.tmp <- params.start
     ## params.hiv.tmp <- params.hiv.start
     ## params.tb.tmp <- params.tb.start
+    ## set up proposed parameter vector
     par.cur <- c(params.tmp$chi.tx[3],
                  params.tmp$foi.hiv[1],
                  params.tmp$beta.sp[1],
@@ -927,7 +946,7 @@ makeHorizonICERPlot <- function(out,times,costs,params,...){
     plot(-100,-100,xlim=range(costs),ylim=c(0,600),xlab="",ylab="")
     sapply(1:length(times),function(horiz){
         lines(costs,sapply(1:length(costs),function(cost)
-                     CalcStats(out,eval.times=1:((horiz*10)+1),dtx.cost=cost,params=params,...)["ICER"]),col=horiz)
+                     calcStats(out,eval.times=1:((horiz*10)+1),dtx.cost=cost,params=params,...)["ICER"]),col=horiz)
               #colors[horiz+2])
               })
 }
@@ -969,9 +988,9 @@ makeLevelPlotICER <- function(out,times,costs,params,xlabs,ylabs,...){
 ##' @author Andrew Azman
 getICER <- function(horiz,cost,params,out,fixed,...){
     if (fixed){
-        CalcICERFixedCosts(out,eval.times=1:((horiz*10)+1),dtx.cost=cost,params=params,...)["ICER"]
+        calcICERFixedCosts(out,eval.times=1:((horiz*10)+1),dtx.cost=cost,params=params,...)["ICER"]
     } else {
-        CalcICER(out,eval.times=1:((horiz*10)+1),dtx.cost=cost,params=params,...)["ICER"]
+        calcICER(out,eval.times=1:((horiz*10)+1),dtx.cost=cost,params=params,...)["ICER"]
     }
 }
 
@@ -2364,10 +2383,7 @@ makeTornadoPlot <- function(sens.mat,
    dev.off()
 }
 
-##' .. content for \description{} (no empty lines) ..
-##'
-##' .. content for \details{} ..
-##' @title
+
 ##' @param nsims
 ##' @param country
 ##' @param param_range_file
@@ -2376,7 +2392,7 @@ makeTornadoPlot <- function(sens.mat,
 ##' @author Andrew Azman
 runLHS <- function(nsims=10,
                    country="india",
-                   param_range_prefix="Data/uncer_ranges_",
+                   param_range_prefix="uncer_ranges_",
                    output_file_prefix="uncer_out",
                    case.dt.dif=case.dt.dif,
                    orig.fits=fits){
@@ -2391,8 +2407,6 @@ runLHS <- function(nsims=10,
     true.param.index <- which(true.params == 1)
     param.names <- paste0(rep(names(orig.fits[[country]]$params),each=4),rep(c("_n","_h","_hArt","_hNoART"),length(orig.fits[[country]]$params)))
 
-    ## write.csv(unlist(fits[[country]]$params)[true.param.index],file=paste0("Data/uncer_ranges_",country,".csv"))
-
     ## make the lhs draws
     lhs.draws <- lhs(n=nsims,params.minmax[,2:3],shape=rep(3,nrow(params.minmax)),mode=params.minmax[,1])
 
@@ -2401,7 +2415,7 @@ runLHS <- function(nsims=10,
     ## Run a two year ACF and store the results only if incidence in baseline scenario at year 10 is orig.I <= I_10 <= orig.I*.5
     for (i in 1:nrow(lhs.draws)){
         if (i %% 1 == 0) cat(".")
-    ## make the parameter list
+        ## make the parameter list
         new.params[[i]] <- updateParams(new.values=lhs.draws[i,],param.indices=true.param.index,countr=country,fits=orig.fits)
         tmp.fits <- orig.fits
         (tmp.fits[[country]]$params <- new.params[[i]])
@@ -2446,12 +2460,11 @@ getIncreasedCasesDetected <- function(case.det.based=TRUE,pct.first.yr=0.25){
 	india.trial <- runTBHIVMod(fit.india.2011$params,fit.india.2011$state,1,var.beta=F)
 	china.trial <- runTBHIVMod(fit.china.2011$params,fit.china.2011$state,1,var.beta=F)
 
-	case.dt.dif <- c("china"=round(
-                         sum(tail(china.trial[,grep("N.", colnames(india.trial))],1))*pct.first.yr,0),
+	case.dt.dif <- c("china"=round(sum(tail(china.trial[,grep("N.", colnames(india.trial))],1))*pct.first.yr,0),
                          "india"=round(sum(tail(india.trial[,grep("N.", colnames(india.trial))],1))*pct.first.yr,0),
                          "sa"=round(sum(tail(sa.trial[,grep("N.", colnames(india.trial))],1))*pct.first.yr,0))
     } else {
-	# incidence based
+        ## incidence based
 	case.dt.dif <- c("china"=round(getWHOStats("China",2011)[,"e_inc_100k"]*pct.first.yr,0),
                          "india"=round(getWHOStats("India",2011)[,"e_inc_100k"]*pct.first.yr,0),
                          "sa"=round(getWHOStats("South Africa",2011)[,"e_inc_100k"]*pct.first.yr,0))

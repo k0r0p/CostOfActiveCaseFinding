@@ -10,7 +10,7 @@ source("Code/common-params.r")  # bring in a bunch of common params and load bas
 make.fig.2 <- function(country="india"){
     require(Hmisc)
 
-    case.dt.dif <- GetIncreasedCasesDetected(TRUE,0.25)[country]
+    case.dt.dif <- getIncreasedCasesDetected(TRUE,0.25)[country]
 
     ## labels to be used in plot
     country.label.name <- switch(country,
@@ -18,7 +18,7 @@ make.fig.2 <- function(country="india"){
                                  "china" = "China",
                                  "sa" = "South Africa")
 
-    fit.tmp <- FitIncreasedDetectionRate(target.detection.increase = case.dt.dif,
+    fit.tmp <- fitIncreasedDetectionRate(target.detection.increase = case.dt.dif,
                                          duration = 1,
                                          params = fits[[country]]$params,
                                          starting.state = fits[[country]]$state,
@@ -27,7 +27,7 @@ make.fig.2 <- function(country="india"){
 
     theta.reduction <- fit.tmp$par
 
-    year2_int_only<- RunIntCont(ss=fits[[country]]$state,
+    year2_int_only<- runIntCont(ss=fits[[country]]$state,
                                 params=fits[[country]]$params,
                                 time=10,
                                 int.theta.sp=theta.reduction,
@@ -39,7 +39,7 @@ make.fig.2 <- function(country="india"){
     colnames(out) <- c(strsplit("txcost.int,ICER,DALYs.averted,DALYs.int,DALYs.cont",",")[[1]])
     for (t in 3:101){
         out[t-2,] <-
-            CalcICERFixedCosts(out=year2_int_only,
+            calcICERFixedCosts(out=year2_int_only,
                                eval.times = 1:t,
                                dtx.cost=50*100,
                                tx.suc=(1),
@@ -58,7 +58,7 @@ make.fig.2 <- function(country="india"){
     pdf(sprintf("Figures/Figure2_%scases_%s.pdf",case.dt.dif,country),width=5,height=6)
     par(mfrow=c(3,1),mar=c(.5,2,.5,1.5),mgp=c(1,.2,0),tck=-.01,cex.axis=0.8,oma=c(2,0,1.5,0))
 
-    PlotTBIncMort(year2_int_only,xaxt="n",legend=F,cd=T,ylab="count per 100,000 / yr",col1=col1,col2=col2)
+    plotTBIncMort(year2_int_only,xaxt="n",legend=F,cd=T,ylab="count per 100,000 / yr",col1=col1,col2=col2)
     polygon(x=c(0,2,2,0),y=c(-1e6,-1e6,20000,20000),bty="n",border=FALSE,col=AddAlpha("grey",.2))
     abline(h=seq(0,1500,by=50),col=AddAlpha("grey",.15))
     abline(v=seq(0,10,by=.5),col=AddAlpha("grey",.15))
@@ -96,7 +96,7 @@ make.fig.2 <- function(country="india"){
     #text(8,165,c("Incidence \n Mortality \n Cases Detected"),cex=.85)
     #legend(6,185,c("","",""),lty=2,col=c(col1,col2,5),bty="n",cex=0.85)
 
-    PlotCumTBIncMort(year2_int_only,xaxt="n",legend=F,ylab="count per 100,000",col1=col1,col2=col2,poly=T)
+    plotCumTBIncMort(year2_int_only,xaxt="n",legend=F,ylab="count per 100,000",col1=col1,col2=col2,poly=T)
     new.out <- out[seq((11-3),(101-3),by=10),]
 
     #lines(0:10,c(0,new.out[,"DALYs.cont"]),col=col3,lty=2)
@@ -151,7 +151,7 @@ make.fig.2 <- function(country="india"){
     ## text(4.5,13400,c("Cum. Incidence \n Cum. DALYs"),cex=.85)
     ## legend(2.5,15000,c("",""),lty=2,col=c(col1,col3),bty="n",cex=0.85)
 
-    PlotCumTBIncMort(year2_int_only,xaxt="n",legend=F,diffs=T,ylab="count per 100,000",type="l",col1=col1)
+    plotCumTBIncMort(year2_int_only,xaxt="n",legend=F,diffs=T,ylab="count per 100,000",type="l",col1=col1)
     lines(3:101,out[,"DALYs.cont"] - out[,"DALYs.int"],type="l",col=col3,lty=6)
     axis(1,at=seq(1,101,by=10),label=0:10)
     abline(h=seq(0,2000,by=250),col=AddAlpha("grey",.15))
@@ -193,15 +193,13 @@ make.fig.3 <- function(){
     gdp.pc <- c("sa"=8090,"india"=1528,"china"=5439)
     pct.first.yr <- 0.25
 
-    sa.trial <- RunTBHIVMod(fit.sa.2011$params,fit.sa.2011$state,1,var.beta=F)
-    india.trial <- RunTBHIVMod(fit.india.2011$params,fit.india.2011$state,1,var.beta=F)
-    china.trial <- RunTBHIVMod(fit.china.2011$params,fit.china.2011$state,1,var.beta=F)
+    sa.trial <- runTBHIVMod(fit.sa.2011$params,fit.sa.2011$state,1,var.beta=F)
+    india.trial <- runTBHIVMod(fit.india.2011$params,fit.india.2011$state,1,var.beta=F)
+    china.trial <- runTBHIVMod(fit.china.2011$params,fit.china.2011$state,1,var.beta=F)
 
-    case.dt.df <- c("china"=round(
-                 sum(tail(china.trial[,grep("N.", colnames(india.trial))],1))*pct.first.yr,0),
-                 "india"=round(sum(tail(india.trial[,grep("N.", colnames(india.trial))],1))*pct.first.yr,0)
-                 ,
-                 "sa"=round(sum(tail(sa.trial[,grep("N.", colnames(india.trial))],1))*pct.first.yr,0))
+    case.dt.df <- c("china"=round(sum(tail(china.trial[,grep("N.", colnames(india.trial))],1))*pct.first.yr,0),
+                    "india"=round(sum(tail(india.trial[,grep("N.", colnames(india.trial))],1))*pct.first.yr,0),
+                    "sa"=round(sum(tail(sa.trial[,grep("N.", colnames(india.trial))],1))*pct.first.yr,0))
 
     country <- c("china","india","sa")
 
@@ -211,7 +209,7 @@ make.fig.3 <- function(){
     out <- array(dim=c(length(per.person.dx.cost),length(horizons),3))
 
     for (c in seq_along(country)){
-        fit.tmp <- FitIncreasedDetectionRate(target.detection.increase = case.dt.df[c],
+        fit.tmp <- fitIncreasedDetectionRate(target.detection.increase = case.dt.df[c],
                                              duration = 1,
                                              params = fits[[country[c]]]$params,
                                              starting.state = fits[[country[c]]]$state,
@@ -221,7 +219,7 @@ make.fig.3 <- function(){
         theta.reduction <- fit.tmp$par
 
         ## run intervention for 2 years but run model for 10
-        year2_int_only<- RunIntCont(ss=fits[[country[c]]]$state,
+        year2_int_only<- runIntCont(ss=fits[[country[c]]]$state,
                                     params=fits[[country[c]]]$params,
                                     time=10,
                                     int.theta.sp=theta.reduction,
@@ -231,7 +229,7 @@ make.fig.3 <- function(){
 
         for (h in seq_along(horizons)){
             for (t in seq_along(per.person.dx.cost)){
-                out[t,h,c] <- CalcICERFixedCosts(out=year2_int_only,
+                out[t,h,c] <- calcICERFixedCosts(out=year2_int_only,
                                                  eval.times = 1:(horizons[h]*10+1),
                                                  dtx.cost=case.dt.df[c]*per.person.dx.cost[t],
                                                  tx.suc=c(1),
@@ -255,23 +253,24 @@ make.fig.3 <- function(){
 
     par(mfrow=c(1,3),mar=c(0.1,0.1,0.1,0.5),oma=c(4,3.1,2,0.5),mgp=c(1,.1,0),tck=0.01)
     icer.range <- range(out) #apply(out,3,function(x) range(x[,"ICER"])))
-    plot(-1000,-1000,xlim=range(per.person.dx.cost),ylim=c(0,10000/1000),xlab="Cost per Case Detected (USD)",ylab="ICER (10-yr Horizon)")
+    plot(-1000,-1000,xlim=c(0,10),#range(per.person.dx.cost),
+         ylim=c(0,10000/1000),xlab="Cost per Case Detected (USD)",ylab="ICER (10-yr Horizon)")
     abline(v=seq(0,15000/1000,by=1000/1000),col=AddAlpha("grey",.2))
     abline(h=seq(0,15000/1000,by=1000/1000),col=AddAlpha("grey",.2))
 
     ## first for 2 year horizon
     lines(per.person.dx.cost,out[,1,1],col=1)
     lines(c(-1000,approx(out[,1,1],per.person.dx.cost,xout=gdp.pc["china"])$y),rep(gdp.pc["china"],2),col=1,lty=2)
-    #text(600,gdp.pc["china"]+200,"GDP China",cex=.5,col=1)
+    ## text(600,gdp.pc["china"]+200,"GDP China",cex=.5,col=1)
 
     lines(per.person.dx.cost,out[,1,2],col=2)
     lines(c(-1000,approx(out[,1,2],per.person.dx.cost,xout=gdp.pc["india"])$y),rep(gdp.pc["india"],2),col=2,lty=2)
-    #text(500,gdp.pc["india"]+200,"GDP India",cex=.5,col=2)
+    ## text(500,gdp.pc["india"]+200,"GDP India",cex=.5,col=2)
 
     lines(per.person.dx.cost,out[,1,3],col=3)
     lines(c(-1000,approx(out[,1,3],per.person.dx.cost,xout=gdp.pc["sa"])$y),rep(gdp.pc["sa"],2),col=3,lty=2)
-    #text(2500,gdp.pc["sa"]+200,"GDP South Africa",cex=.5,col=3)
-    #legend("topright",paste0("Per Capita GDP: ",c("China","India","S. Africa")),col=1:3,lty=2,bty="n",cex=0.8)
+    ## text(2500,gdp.pc["sa"]+200,"GDP South Africa",cex=.5,col=3)
+    ## legend("topright",paste0("Per Capita GDP: ",c("China","India","S. Africa")),col=1:3,lty=2,bty="n",cex=0.8)
 
     # draw lines outside of the plot box to indiate the cost per case detected
     par(xpd=NA)
@@ -291,7 +290,8 @@ make.fig.3 <- function(){
     text(200/1000,par("usr")[4]*0.95,"A",cex=1.5)
     legend("topright",c("India","China","South Africa"),text.col=c(2,1,3),lty=-1,pch=-1,bty="n")
     ## 5 year horzon
-    plot(-1000,-1000,xlim=range(per.person.dx.cost),ylim=c(0,10000/1000),xlab="",ylab="",yaxt="n")
+    plot(-1000,-1000,xlim=c(0,10),#range(per.person.dx.cost),
+         ylim=c(0,10000/1000),xlab="",ylab="",yaxt="n")
     abline(v=seq(0,15000/1000,by=1000/1000),col=AddAlpha("grey",.2))
     abline(h=seq(0,15000/1000,by=1000/1000),col=AddAlpha("grey",.2))
 
@@ -327,7 +327,8 @@ make.fig.3 <- function(){
     text(200/1000,par("usr")[4]*0.95,"B",cex=1.5)
 
     ## first for 10 year horizon
-    plot(-1000,-1000,xlim=range(per.person.dx.cost),ylim=c(0,10000/1000),xlab="",ylab="",yaxt="n")
+    plot(-1000,-1000,xlim=c(0,10),#range(per.person.dx.cost),
+         ylim=c(0,10000/1000),xlab="",ylab="",yaxt="n")
     abline(v=seq(0,15000/1000,by=1000/1000),col=AddAlpha("grey",.2))
     abline(h=seq(0,15000/1000,by=1000/1000),col=AddAlpha("grey",.2))
 
@@ -379,7 +380,7 @@ make.fig.4 <- function(pdf=T,fn="Figures/Figure4.pdf",
                        india.file="Data/india_icers_4July.rda"){
     if (is.null(sa.file)){
         ## get ICER data for sustained plots
-        sa <- MakeICERPlotFixed(icer.min = icer.min,
+        sa <- makeICERPlotFixed(icer.min = icer.min,
                                 icer.max = icer.max,
                                 case.dt.dif = case.dt.dif[3],
                                 plot.params = fits[["sa"]]$params,
@@ -399,7 +400,7 @@ make.fig.4 <- function(pdf=T,fn="Figures/Figure4.pdf",
 
     if (is.null(china.file)){
 
-        china <- MakeICERPlotFixed(icer.min = icer.min,
+        china <- makeICERPlotFixed(icer.min = icer.min,
                                    icer.max = icer.max,
                                    case.dt.dif = case.dt.dif[1],
                                    plot.params = fits[["china"]]$params,
@@ -418,7 +419,7 @@ make.fig.4 <- function(pdf=T,fn="Figures/Figure4.pdf",
     }
 
     if (is.null(india.file)){
-        india <- MakeICERPlotFixed(icer.min = icer.min,
+        india <- makeICERPlotFixed(icer.min = icer.min,
                                    icer.max = icer.max,
                                    case.dt.dif = case.dt.dif[2],
                                    plot.params = fits[["india"]]$params,
@@ -446,28 +447,28 @@ make.fig.4 <- function(pdf=T,fn="Figures/Figure4.pdf",
     }
 
     par(mfrow=c(2,3),mar=c(1,1.5,1,1.5),mgp=c(2,.2,0),tck=-.01,cex.axis=0.8,oma=c(2,2,2,4))
-    PlotTBIncMort(sa[[2]],legend=F,col1=col1,col2=col2)
+    plotTBIncMort(sa[[2]],legend=F,col1=col1,col2=col2)
     abline(v=1:10,col=AddAlpha("grey",.2))
     abline(h=seq(100,1000,by=100),col=AddAlpha("grey",.2))
 
     text(par("usr")[2]*.9,par("usr")[4]*0.95,"A",cex=1.5)
 
 
-    PlotTBIncMort(china[[2]],legend=F,col1=col1,col2=col2)
+    plotTBIncMort(china[[2]],legend=F,col1=col1,col2=col2)
     abline(v=1:10,col=AddAlpha("grey",.2))
     abline(h=seq(0,1000,by=100),col=AddAlpha("grey",.2))
 
     text(par("usr")[2]*.9,par("usr")[4]*0.95,"B",cex=1.5)
 
 
-    PlotTBIncMort(india[[2]],legend=F,col1=col1,col2=col2)
+    plotTBIncMort(india[[2]],legend=F,col1=col1,col2=col2)
     abline(v=1:10,col=AddAlpha("grey",.2))
     abline(h=seq(0,1000,by=100),col=AddAlpha("grey",.2))
 
     text(par("usr")[2]*.9,par("usr")[4]*0.95,"C",cex=1.5)
 
 
-    null <- MakeICERPlotFixed(icer.min = icer.min,
+    null <- makeICERPlotFixed(icer.min = icer.min,
                               icer.max = icer.max,
                               case.dt.dif = case.dt.dif["sa"],
                               plot.params = fits[["sa"]]$params,
@@ -487,7 +488,7 @@ make.fig.4 <- function(pdf=T,fn="Figures/Figure4.pdf",
 
     box()
 
-    null <- MakeICERPlotFixed(icer.min = icer.min,
+    null <- makeICERPlotFixed(icer.min = icer.min,
                               icer.max = icer.max,
                               case.dt.dif = case.dt.dif["china"],
                               plot.params = fits[["china"]]$params,
@@ -497,7 +498,7 @@ make.fig.4 <- function(pdf=T,fn="Figures/Figure4.pdf",
                               tx.cost.mdr = tx.cost.mdr.pc["china"],
                               pct.mdr= pct.mdr.pc["china"],
                               tx.cost.partial.mdr = tx.cost.partial.mdr["china"],
-                          my.title = "",
+                              my.title = "",
                               gdp=gdp.pc["china"],
                               contours=contours.pc["china"][[1]],
                               ICERS = china[[1]],
@@ -507,31 +508,31 @@ make.fig.4 <- function(pdf=T,fn="Figures/Figure4.pdf",
 
     box()
 
-    null <- MakeICERPlotFixed(icer.min = icer.min,
-                          icer.max = icer.max,
-                          case.dt.dif = case.dt.dif["india"],
-                          plot.params = fits[["india"]]$params,
-                          start.state = fits[["india"]]$state,
-                          tx.cost = tx.cost.pc["india"],
-                          tx.cost.partial = tx.cost.partial.pc["india"],
-                          tx.cost.mdr = tx.cost.mdr.pc["india"],
-                          pct.mdr= pct.mdr.pc["india"],
-                          tx.cost.partial.mdr = tx.cost.partial.mdr["india"],
-                          my.title = "",
-                          gdp=gdp.pc["india"],
-                          contours=contours.pc["india"][[1]],
-                          ICERS = india[[1]],
-                          intcont.run = india[[2]],leg=TRUE)
+    null <- makeICERPlotFixed(icer.min = icer.min,
+                              icer.max = icer.max,
+                              case.dt.dif = case.dt.dif["india"],
+                              plot.params = fits[["india"]]$params,
+                              start.state = fits[["india"]]$state,
+                              tx.cost = tx.cost.pc["india"],
+                              tx.cost.partial = tx.cost.partial.pc["india"],
+                              tx.cost.mdr = tx.cost.mdr.pc["india"],
+                              pct.mdr= pct.mdr.pc["india"],
+                              tx.cost.partial.mdr = tx.cost.partial.mdr["india"],
+                              my.title = "",
+                              gdp=gdp.pc["india"],
+                              contours=contours.pc["india"][[1]],
+                              ICERS = india[[1]],
+                              intcont.run = india[[2]],leg=TRUE)
 
     text(par("usr")[2]*.9,par("usr")[4]*0.95,"F",cex=1.5)
 
-box()
+    box()
     mtext("ICER ($)",outer=T,side=4,at=.47,las=2,cex=.7,adj=.1)
 
-mtext("South Africa",side=3,outer=T,at=.15)
-mtext("China",side=3,outer=T,at=.5)
-mtext("India",side=3,outer=T,at=.85)
-mtext("Year",side=1,outer=T,at=0.5,cex=.75,line=.7)
+    mtext("South Africa",side=3,outer=T,at=.15)
+    mtext("China",side=3,outer=T,at=.5)
+    mtext("India",side=3,outer=T,at=.85)
+    mtext("Year",side=1,outer=T,at=0.5,cex=.75,line=.7)
     mtext("count per 100,000",side=2,outer=T,at=0.75,cex=.75)
     mtext("cost per case detected, year 1 (USD)",side=2,outer=T,at=0.25,cex=.75)
     if (pdf) dev.off()
@@ -541,21 +542,21 @@ mtext("Year",side=1,outer=T,at=0.5,cex=.75,line=.7)
 #################################
 ## Numbers mentioned in Paper####
 #################################
-red.sa <- FitIncreasedDetectionRate(target.detection.increase = case.dt.dif["sa"],
+red.sa <- fitIncreasedDetectionRate(target.detection.increase = case.dt.dif["sa"],
                                     duration = 1,
                                     params = fits[["sa"]]$params,
                                     starting.state = fits[["sa"]]$state,
                                     ep.sn.multiplier = 1,
                                     var.beta=FALSE)
 
-red.india <- FitIncreasedDetectionRate(target.detection.increase = case.dt.dif["india"],
+red.india <- fitIncreasedDetectionRate(target.detection.increase = case.dt.dif["india"],
                                        duration = 1,
                                        params = fits[["india"]]$params,
                                        starting.state = fits[["india"]]$state,
                                        ep.sn.multiplier = 1,
                                        var.beta=FALSE)
 
-red.china <- FitIncreasedDetectionRate(target.detection.increase = case.dt.dif["china"],
+red.china <- fitIncreasedDetectionRate(target.detection.increase = case.dt.dif["china"],
                                        duration = 1,
                                        params = fits[["china"]]$params,
                                        starting.state = fits[["china"]]$state,
@@ -568,7 +569,7 @@ red.china <- FitIncreasedDetectionRate(target.detection.increase = case.dt.dif["
 (pct.increase.china <- (red.china$par+fits[["china"]]$params$theta.sp[1])/fits[["china"]]$params$theta.sp[1] - 1)
 
 ## duration of active TB in each country
-## pre duration of ATB in SA
+## pre duration of aTB in SA
 1/(fits[["sa"]]$params$theta.sp[1])*12 + (1/fits[["sa"]]$params$rho.ps[1])*12 # number of months
 ## post
 1/(red.sa$par+fits[["sa"]]$params$theta.sp[1])*12 + (1/fits[["sa"]]$params$rho.ps[1])*12 # number of months
@@ -581,21 +582,20 @@ red.china <- FitIncreasedDetectionRate(target.detection.increase = case.dt.dif["
 ## Post - China
 1/(red.china$par+fits[["china"]]$params$theta.sp[1])*12+ (1/fits[["china"]]$params$rho.ps[1])*12 # number of months
 
-
 ## Now running two year ACF campaigns in each country
-two.year.india <- RunNYearACF("india",
+two.year.india <- runNYearACF("india",
                               case.dt.dif=case.dt.dif,
                               int.dur=2,
                               total.dur = 10,
                               fits=fits)
 
-two.year.china <- RunNYearACF("china",
+two.year.china <- runNYearACF("china",
                               case.dt.dif=case.dt.dif,
                               int.dur=2,
                               total.dur = 10,
                               fits=fits)
 
-two.year.sa <- RunNYearACF("sa",
+two.year.sa <- runNYearACF("sa",
                            case.dt.dif=case.dt.dif,
                            int.dur=2,
                            total.dur = 10,
@@ -614,9 +614,9 @@ two.year.sa <- RunNYearACF("sa",
 ## GetPctReductionAndTime(two.year.sa)
 
 ## what are the prevalence ratios over time?
-prev.ratio.india <- rowSums(GetPrevCols(two.year.india[[1]]))/rowSums(GetPrevCols(two.year.india[[2]]))
-prev.ratio.china <- rowSums(GetPrevCols(two.year.china[[1]]))/rowSums(GetPrevCols(two.year.china[[2]]))
-prev.ratio.sa <- rowSums(GetPrevCols(two.year.sa[[1]]))/rowSums(GetPrevCols(two.year.sa[[2]]))
+prev.ratio.india <- rowSums(getPrevCols(two.year.india[[1]]))/rowSums(getPrevCols(two.year.india[[2]]))
+prev.ratio.china <- rowSums(getPrevCols(two.year.china[[1]]))/rowSums(getPrevCols(two.year.china[[2]]))
+prev.ratio.sa <- rowSums(getPrevCols(two.year.sa[[1]]))/rowSums(getPrevCols(two.year.sa[[2]]))
 
 ## Figure S? prevalance ratios after 2 year campaign
 pdf("Figures/prev_ratio_2yrint.pdf")
@@ -651,7 +651,8 @@ deaths.averted.china <- sapply(runs.china,function(x)
 
 deaths.averted.sa <- sapply(runs.sa,function(x)
                          sum(tail(x[[2]][,grep("Mtb",colnames(x[[2]]))],1)) -
-                         sum(tail(x[[1]][,grep("Mtb",colnames(x[[1]]))],1)),simplify=T)
+                         sum(tail(x[[1]][,grep("Mtb",colnames(x[[1]]))],1)),
+                            simplify=T)
 10*quantile(deaths.averted.sa,c(0.025,.975))
 
 ## pecentage of deaths occuring over the time period of the intervention
@@ -674,13 +675,12 @@ cases.averted[21]/max(cases.averted)
 
 ## CE thresholds after 10-yrs
 (cum.cases.averted <- tail(two.year.india[[2]][,"CIall"],1) - tail(two.year.india[[1]][,"CIall"],1))*10
-
 10*(deaths.averted <- rowSums(two.year.india[[2]][,grep("Mtb",colnames(two.year.india[[2]]))]) - rowSums(two.year.india[[1]][,grep("Mtb",colnames(two.year.india[[1]]))]))
 
 #deaths.averted <- diff(rowSums(two.year.india[[2]][,grep("Mtb",colnames(two.year.india[[2]]))])) - diff(rowSums(two.year.india[[1]][,grep("Mtb",colnames(two.year.india[[1]]))]))
 
 ## ho much per daly after 2 years
-CalcICERFixedCosts(out=two.year.india,
+calcICERFixedCosts(out=two.year.india,
                    eval.times = 1:(10*2+1),
                    dtx.cost=case.dt.dif["india"]*500,
                    tx.suc=c(1),
@@ -692,7 +692,7 @@ CalcICERFixedCosts(out=two.year.india,
                    params=fits[["india"]]$params)
 
 ## and after 10 years
-CalcICERFixedCosts(out=two.year.india,
+calcICERFixedCosts(out=two.year.india,
                    eval.times = 1:(10*10+1),
                    dtx.cost=case.dt.dif["india"]*500,
                    tx.suc=c(1),
@@ -736,7 +736,7 @@ sum(tail(two.year.china[[2]][,grep("Mtb",colnames(two.year.china[[2]]))],1)) -
 
 
 ## DALYS averted
-CalcICERFixedCosts(out=two.year.india,
+calcICERFixedCosts(out=two.year.india,
                    eval.times = 1:(10*10+1),
                    dtx.cost=case.dt.dif["india"]*1200,
                    tx.suc=c(1),
@@ -754,7 +754,7 @@ CalcICERFixedCosts(out=two.year.india,
 
 ## India
 theta.reduction.india <- red.india$par
-run.india  <- RunIntCont(fits[["india"]]$state,
+run.india  <- runIntCont(fits[["india"]]$state,
                          fits[["india"]]$params,10,
                          int.theta.sp= theta.reduction.india,
                          int.theta.sn = theta.reduction.india*1,
@@ -764,12 +764,12 @@ out.india <- run.india
 cum.inc.diff <- tail(out.india[[2]][,"CIall"],1) - tail(out.india[[1]][,"CIall"],1)
 (pct.red.cum.inc <- 1 -
  (tail(out.india[[1]][,"CIall"],1) - out.india[[1]][1,"CIall"]) /
- (tail(out.india[[2]][,"CIall"],1) -  out.india[[2]][1,"CIall"]))
+ (tail(out.india[[2]][,"CIall"],1) -  out.india[[2]][1,"CIall"])) #15.28%
 
 ## in final year
 inc.diff.final.yr <- (tail(out.india[[2]][,"CIall"],1) -  tail(out.india[[2]][,"CIall"],11)[1]) -
     (tail(out.india[[1]][,"CIall"],1) -  tail(out.india[[1]][,"CIall"],11)[1])
-(inc.pct.diff.final.yr <- 1 - (tail(out.india[[1]][,"CIall"],1) -  tail(out.india[[1]][,"CIall"],11)[1]) /
+(inc.pct.diff.final.yr <- 1 - (tail(out.india[[1]][,"CIall"],1) -  tail(out.india[[1]][,"CIall"],11)[1])/
  (tail(out.india[[2]][,"CIall"],1) -  tail(out.india[[2]][,"CIall"],11)[1]))
 
 
@@ -778,6 +778,7 @@ mtb.cols <- grep("Mtb",colnames(out.india[[1]]))
 (pct.red.cum.mort <- 1 - (sum(tail(out.india[[1]][,mtb.cols],1)) /sum(tail(out.india[[2]][,mtb.cols],1)))) #41.68% reduction
 total <- sum(tail(out.india[[2]][,mtb.cols],1)) - sum(tail(out.india[[1]][,mtb.cols],1))
 (rowSums(out.india[[2]][,mtb.cols]) - rowSums(out.india[[1]][,mtb.cols]))[21]/total
+#13.38%
 
 ## incidence and mortality rates in final year
 1 - diff(tail(out.india[[1]][,"CIall"],2) ) / diff(tail(out.india[[2]][,"CIall"],2) )
@@ -786,7 +787,7 @@ total <- sum(tail(out.india[[2]][,mtb.cols],1)) - sum(tail(out.india[[1]][,mtb.c
 
 ## China
 theta.reduction.china <- red.china$par
-run.china  <- RunIntCont(fits[["china"]]$state,
+run.china  <- runIntCont(fits[["china"]]$state,
                          fits[["china"]]$params,10,
                          int.theta.sp= theta.reduction.china,
                          int.theta.sn = theta.reduction.china*1,
@@ -816,7 +817,7 @@ mtb.cols <- grep("Mtb",colnames(out.china[[1]]))
 
 ## South Africa
 theta.reduction.sa <- red.sa$par
-run.sa  <- RunIntCont(fits[["sa"]]$state,
+run.sa  <- runIntCont(fits[["sa"]]$state,
                       fits[["sa"]]$params,10,
                       int.theta.sp= theta.reduction.sa,
                       int.theta.sn = theta.reduction.sa*1,
@@ -829,15 +830,15 @@ cum.inc.diff <- tail(out.sa[[2]][,"CIall"],1) - tail(out.sa[[1]][,"CIall"],1)
  (tail(out.sa[[2]][,"CIall"],1) -  out.sa[[2]][1,"CIall"])) #3.5%
 
     ## in final year
-    inc.diff.final.yr <- (tail(out.sa[[2]][,"CIall"],1) -  tail(out.sa[[2]][,"CIall"],11)[1]) -
-        (tail(out.sa[[1]][,"CIall"],1) -  tail(out.sa[[1]][,"CIall"],11)[1])
-    (inc.pct.diff.final.yr <- 1 - (tail(out.sa[[1]][,"CIall"],1) -  tail(out.sa[[1]][,"CIall"],11)[1]) /
-        (tail(out.sa[[2]][,"CIall"],1) -  tail(out.sa[[2]][,"CIall"],11)[1])) #5% reduction
+inc.diff.final.yr <- (tail(out.sa[[2]][,"CIall"],1) -  tail(out.sa[[2]][,"CIall"],11)[1]) -
+(tail(out.sa[[1]][,"CIall"],1) -  tail(out.sa[[1]][,"CIall"],11)[1])
+(inc.pct.diff.final.yr <- 1 - (tail(out.sa[[1]][,"CIall"],1) -  tail(out.sa[[1]][,"CIall"],11)[1]) /
+ (tail(out.sa[[2]][,"CIall"],1) -  tail(out.sa[[2]][,"CIall"],11)[1])) #5% reduction
 
-    #pct reduction in cumulative 10-yr mortality
-    mtb.cols <- grep("Mtb",colnames(out.sa[[1]]))
-    (pct.red.cum.mort <- 1 - ((sum(tail(out.sa[[1]][,mtb.cols],1)) - sum(out.sa[[1]][1,mtb.cols]))  /
-                              (sum(tail(out.sa[[2]][,mtb.cols],1)) - sum(out.sa[[2]][1,mtb.cols])))) #41.68% reduction
+                                        #pct reduction in cumulative 10-yr mortality
+mtb.cols <- grep("Mtb",colnames(out.sa[[1]]))
+(pct.red.cum.mort <- 1 - ((sum(tail(out.sa[[1]][,mtb.cols],1)) - sum(out.sa[[1]][1,mtb.cols]))  /
+                          (sum(tail(out.sa[[2]][,mtb.cols],1)) - sum(out.sa[[2]][1,mtb.cols])))) #41.68% reduction
 
 1 - sum(tail(out.sa[[1]][,mtb.cols],1))/sum(tail(out.sa[[2]][,mtb.cols],1))
 
@@ -847,23 +848,27 @@ cum.inc.diff <- tail(out.sa[[2]][,"CIall"],1) - tail(out.sa[[1]][,"CIall"],1)
 
 
 # prevalance ratio
-prev.ratio.india10 <- rowSums(GetPrevCols(out.india[[1]]))/rowSums(GetPrevCols(out.india[[2]]))
-prev.ratio.china10 <- rowSums(GetPrevCols(out.china[[1]]))/rowSums(GetPrevCols(out.china[[2]]))
-prev.ratio.sa10 <- rowSums(GetPrevCols(out.sa[[1]]))/rowSums(GetPrevCols(out.sa[[2]]))
+prev.ratio.india10 <- rowSums(getPrevCols(out.india[[1]]))/rowSums(getPrevCols(out.india[[2]]))
+prev.ratio.china10 <- rowSums(getPrevCols(out.china[[1]]))/rowSums(getPrevCols(out.china[[2]]))
+prev.ratio.sa10 <- rowSums(getPrevCols(out.sa[[1]]))/rowSums(getPrevCols(out.sa[[2]]))
 
 pdf("Figures/prevratio_10yrintervention.pdf")
 par(mgp = c(1.5,.5,0),mar=c(3,3,2,.5))
-plot(seq(0,10,length=101),prev.ratio.sa10,type="l",col=3,ylab="prevalence ratio",xlab="year")
+plot(seq(0,10,length=101),
+     prev.ratio.sa10,
+     type="l",col=3,
+     ylim=c(0.65,1),
+     ylab="prevalence ratio",xlab="year")
 lines(seq(0,10,length=101),prev.ratio.india10,col=2)
 lines(seq(0,10,length=101),prev.ratio.china10,col=1)
-#abline(v=2,col="red",lty=2)
+                                        #abline(v=2,col="red",lty=2)
 abline(h=seq(0,1,by=0.1),col="grey")
 abline(v=seq(0,10,by=1),col="grey")
 legend("topright",c("China","India","South Africa"),bty="n",col=1:3,lty=1)
 dev.off()
 ## ICERS
 
-GetICER(horiz=2.5,
+getICER(horiz=2.5,
         cost=5000*case.dt.dif["sa"],
         params= fits[["sa"]]$params,
         out=sa[[2]],
@@ -874,7 +879,7 @@ GetICER(horiz=2.5,
         pct.mdr=pct.mdr.pc["sa"],
         fixed=TRUE)
 
-GetICER(horiz=6.2,
+getICER(horiz=6.2,
         cost=5000*case.dt.dif["china"],
         params= fits[["china"]]$params,
         out=china[[2]],
@@ -885,7 +890,7 @@ GetICER(horiz=6.2,
         pct.mdr=pct.mdr.pc["china"],
         fixed=TRUE)
 
-GetICER(horiz=9.9,
+getICER(horiz=9.9,
         cost=5000*case.dt.dif["india"],
         params= fits[["india"]]$params,
         out=india[[2]],
@@ -897,7 +902,7 @@ GetICER(horiz=9.9,
         fixed=TRUE)
 
 
-GetICER(horiz=2,
+getICER(horiz=2,
         cost=1500*case.dt.dif["sa"],
         params= fits[["sa"]]$params,
         out=sa[[2]],
@@ -908,7 +913,7 @@ GetICER(horiz=2,
         pct.mdr=pct.mdr.pc["sa"],
         fixed=TRUE)
 
-GetICER(horiz=10,
+getICER(horiz=10,
         cost=1500*case.dt.dif["sa"],
         params= fits[["sa"]]$params,
         out=sa[[2]],
@@ -919,7 +924,7 @@ GetICER(horiz=10,
         pct.mdr=pct.mdr.pc["sa"],
         fixed=TRUE)
 
-GetICER(horiz=10,
+getICER(horiz=10,
         cost=1500*case.dt.dif["china"],
         params= fits[["china"]]$params,
         out=china[[2]],
@@ -930,7 +935,7 @@ GetICER(horiz=10,
         pct.mdr=pct.mdr.pc["china"],
         fixed=TRUE)
 
-GetICER(horiz=10,
+getICER(horiz=10,
         cost=1500*case.dt.dif["india"],
         params= fits[["india"]]$params,
         out=india[[2]],
@@ -955,9 +960,9 @@ int.size.sens <- function(pct.dif=seq(.05,.5,length=10),
                           fits){
 
 
-    sa.trial <- RunTBHIVMod(fit.sa.2011$params,fit.sa.2011$state,1,var.beta=F)
-    india.trial <- RunTBHIVMod(fit.india.2011$params,fit.india.2011$state,1,var.beta=F)
-    china.trial <- RunTBHIVMod(fit.china.2011$params,fit.china.2011$state,1,var.beta=F)
+    sa.trial <- runTBHIVMod(fit.sa.2011$params,fit.sa.2011$state,1,var.beta=F)
+    india.trial <- runTBHIVMod(fit.india.2011$params,fit.india.2011$state,1,var.beta=F)
+    china.trial <- runTBHIVMod(fit.china.2011$params,fit.china.2011$state,1,var.beta=F)
 
     runs <- sapply(seq_along(pct.dif),function(p) {
 
@@ -966,20 +971,20 @@ int.size.sens <- function(pct.dif=seq(.05,.5,length=10),
                            china.trial[,grep("N.", colnames(india.trial))],1))
                              *pct.dif[p],0),
                        "india"=round(sum(tail(
-                       india.trial[,grep("N.", colnames(india.trial))],1))
-                       *pct.dif[p],0),
+                           india.trial[,grep("N.", colnames(india.trial))],1))
+                           *pct.dif[p],0),
                        "sa"=round(sum(tail(
                            sa.trial[,grep("N.", colnames(india.trial))],1))
-                             *pct.dif[p],0))
+                           *pct.dif[p],0))
         print(case.difs)
-        run <- RunNYearACF(country,
+        run <- runNYearACF(country,
                            pct.incidence = 0,
                            case.dt.dif=case.difs,
                            int.dur = 2,
                            total.dur = 10,
                            fits=fits)
 
-        CalcICERFixedCosts(out=run,
+        calcICERFixedCosts(out=run,
                            eval.times = 1:(10*10+1),
                            dtx.cost=round(case.difs[country])*cost.per.case,
                            tx.suc=c(1),
@@ -1004,8 +1009,10 @@ china.mag.sense <- int.size.sens(country="china",fits=fits)
 ## get cost per DALY at 1500/case
 countries <- c("india","china","sa")
 base.case <- sapply(countries,function(country){
-    run <- RunNYearACF(country,pct.incidence = 0.15,case.dt.dif=case.dt.dif,int.dur = 2,total.dur = 10,fits=fits)
-    CalcICERFixedCosts(out=run,
+    run <- runNYearACF(country,pct.incidence = 0.15,
+                       case.dt.dif=case.dt.dif,
+                       int.dur = 2,total.dur = 10,fits=fits)
+    calcICERFixedCosts(out=run,
                        eval.times = 1:(10*10+1),
                        dtx.cost=case.dt.dif[country]*1500,
                        tx.suc=c(1),
@@ -1030,7 +1037,7 @@ dev.off()
 ## explore impact of time horizon on Cost Effectiveness of Intervention
 make.time.horiz.ce <- function(pct.first.yr=.25){
     gdp.pc <- c("sa"=8090,"india"=1528,"china"=5439)
-    case.dt.df <- GetIncreasedCasesDetected(case.det.based=TRUE,pct.first.yr=0.25)
+    case.dt.df <- getIncreasedCasesDetected(case.det.based=TRUE,pct.first.yr=0.25)
 
     country <- c("china","india","sa")
 
@@ -1041,7 +1048,7 @@ make.time.horiz.ce <- function(pct.first.yr=.25){
 
     for (c in seq_along(country)){
         ## fit the new case detection rate
-        fit.tmp <- FitIncreasedDetectionRate(target.detection.increase = case.dt.df[c],
+        fit.tmp <- fitIncreasedDetectionRate(target.detection.increase = case.dt.df[c],
                                              duration = 1,
                                              params = fits[[country[c]]]$params,
                                              starting.state = fits[[country[c]]]$state,
@@ -1051,7 +1058,7 @@ make.time.horiz.ce <- function(pct.first.yr=.25){
         theta.reduction <- fit.tmp$par
 
         ## run intervention for 2 years but run model for 10
-        year2_int_only<- RunIntCont(ss=fits[[country[c]]]$state,
+        year2_int_only<- runIntCont(ss=fits[[country[c]]]$state,
                                     params=fits[[country[c]]]$params,
                                     time=10,
                                     int.theta.sp=theta.reduction,
@@ -1062,7 +1069,7 @@ make.time.horiz.ce <- function(pct.first.yr=.25){
 
         for (t in seq_along(per.person.dx.cost)){
             for (h in seq_along(horizons)){
-                out[t,h,c] <- CalcICERFixedCosts(out=year2_int_only,
+                out[t,h,c] <- calcICERFixedCosts(out=year2_int_only,
                                                  eval.times = 1:((horizons[h]*10)+1),
                                                  dtx.cost=case.dt.df[c]*per.person.dx.cost[t],
                                                  tx.suc=c(1),
@@ -1135,4 +1142,4 @@ make.time.horiz.ce <- function(pct.first.yr=.25){
 deaths.sa.2010 <- 543856
 deaths.sa.2009 <- 579711
 deaths.in.sa.model.09.10 <- 10*(sum(two.year.sa[[2]][,grep("Mtb",colnames(two.year.sa[[2]]))][21,]) - sum(two.year.sa[[1]][,grep("Mtb",colnames(two.year.sa[[1]]))][21,]))
-change.in.all.cause.mortality <- deaths.in.sa.model.09.10/(deaths.sa.2010+deaths.sa.2009)*100
+(change.in.all.cause.mortality <- deaths.in.sa.model.09.10/(deaths.sa.2010+deaths.sa.2009)*100)
