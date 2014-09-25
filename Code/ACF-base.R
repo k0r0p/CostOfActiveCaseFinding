@@ -1625,7 +1625,12 @@ compareStats <- function(run,year,country){
 ##' @param fits named (by country) list of fitted objects
 ##' @return intcont list for simulation
 ##' @author Andrew Azman
-runNYearACF <- function(country,pct.incidence,case.dt.dif,int.dur=2,total.dur=10,fits){
+runNYearACF <- function(country,
+                        pct.incidence,
+                        case.dt.dif,
+                        int.dur=2,
+                        total.dur=10,
+                        fits){
     #require(Hmisc)
     ## number of cases detecgted in year 1 proportional to incidence
     if (missing(case.dt.dif)){
@@ -2391,40 +2396,89 @@ makeTornadoPlot <- function(sens.mat,
 ##' @return saves (1) list of run outputs and (2) list of parameters lists
 ##' @author Andrew Azman
 runLHS <- function(nsims=10,
-                   country="india",
+                   country="sa",
                    param_range_prefix="uncer_ranges_",
                    output_file_prefix="uncer_out",
                    case.dt.dif=case.dt.dif,
-                   orig.fits=fits){
+                   orig.fits=fits,
+                   per.person.dx.cost=seq(1000,35000,length=300)
+                   ){
     require(tgp)
     ## load in transformation functiosn that deal with dependent params
     up.funcs <- makeUpFuncs()
     params.minmax <- as.matrix(read.csv(paste0("Data/",param_range_prefix,country,".csv"),row.names=1),ncol=4)
-    true.params <-1 - sapply(up.funcs,function(x) all.equal(
+    true.params <-1 -sapply(up.funcs,function(x) all.equal(
         unlist(x(orig.fits[[country]]$params,-10)),
         unlist(orig.fits[[country]]$params)) == TRUE)
 
     true.param.index <- which(true.params == 1)
-    param.names <- paste0(rep(names(orig.fits[[country]]$params),each=4),rep(c("_n","_h","_hArt","_hNoART"),length(orig.fits[[country]]$params)))
+    param.names <- paste0(rep(names(orig.fits[[country]]$params),each=4),
+                          rep(c("_n","_h","_hArt","_hNoART"),
+                              length(orig.fits[[country]]$params)))
 
     ## make the lhs draws
-    lhs.draws <- lhs(n=nsims,params.minmax[,2:3],shape=rep(3,nrow(params.minmax)),mode=params.minmax[,1])
+    lhs.draws <- lhs(n=nsims,
+                      params.minmax[,2:3],
+                      shape=rep(3,nrow(params.minmax)),
+                      mode=params.minmax[,1])
 
     runs <- list("vector",nsims)
     new.params <- list("vector",nsims)
-    ## Run a two year ACF and store the results only if incidence in baseline scenario at year 10 is orig.I <= I_10 <= orig.I*.5
+    ## Run a two year ACF and store the results only if
+    ## I don't think we are doing the following anymore but left the comment in:
+    ## incidence in baseline scenario at year 10 is orig.I <= I_10 <= orig.I*.5
     for (i in 1:nrow(lhs.draws)){
-        if (i %% 1 == 0) cat(".")
+        if (i %% 100 == 0) cat(".")
         ## make the parameter list
-        new.params[[i]] <- updateParams(new.values=lhs.draws[i,],param.indices=true.param.index,countr=country,fits=orig.fits)
+        new.params[[i]] <- updateParams(new.values=lhs.draws[i,],
+                                         param.indices=true.param.index,
+                                         countr=country,
+                                         fits=orig.fits)
         tmp.fits <- orig.fits
         (tmp.fits[[country]]$params <- new.params[[i]])
-        runs[[i]] <- runNYearACF(country,pct.incidence=.15,case.dt.dif=case.dt.dif,int.dur = 2,total.dur = 10,fits=tmp.fits)
+        runs[[i]] <- runNYearACF(country,
+                                 pct.incidence=.15,
+                                 case.dt.dif=case.dt.dif,
+                                 int.dur = 2,
+                                 total.dur = 10,
+                                 fits=tmp.fits)
     }
     ## going to store as a list of runs
-    save(runs,file=paste0(output_file_prefix,"_",country,"_runs_",Sys.Date(),".rda"))
-    save(new.params,file=paste0(output_file_prefix,"_",country,"_params_",Sys.Date(),".rda"))
-    save(lhs.draws,file=paste0(output_file_prefix,"_",country,"_lhsdraws_",Sys.Date(),".rda")) #this is a matrix of the LHS samples and includes the cost
+
+    unix.time.stamp <- sprintf("%.0f",as.numeric(Sys.time()))
+
+    save(runs,file=paste0(output_file_prefix,"_",country,"_runs_",unix.time.stamp,".rda"))
+    save(new.params,file=paste0(output_file_prefix,"_",country,"_params_",unix.time.stamp,".rda"))
+    save(lhs.draws,file=paste0(output_file_prefix,"_",country,"_lhsdraws_",unix.time.stamp,".rda")) #this is a matrix of the LHS samples and includes the cost
+    ## save(runs,file=paste0(output_file_prefix,"_",country,"_runs_",Sys.Date(),".rda"))
+    ## save(new.params,file=paste0(output_file_prefix,"_",country,"_params_",Sys.Date(),".rda"))
+    ## save(lhs.draws,file=paste0(output_file_prefix,"_",country,"_lhsdraws_",Sys.Date(),".rda")) #this is a matrix of the LHS samples and includes the cost
+
+    horizons <- c(2,5,10)
+    out <- array(dim=c(300,3,nsims))
+
+    print(" \n post-processing \n")
+    for (i in 1:nsims){
+        cat("*")
+        for (h in seq_along(horizons)){
+            for (t in seq_along(per.person.dx.cost)){
+                out[t,h,i] <-
+                calcICERFixedCosts(out=runs[[i]],
+                                   eval.times = 1:(horizons[h]*10+1),
+                                   dtx.cost=case.dt.df[country]*per.person.dx.cost[t],
+                                   tx.suc=c(1),
+                                   tx.cost = tx.cost.pc[country],
+                                   tx.cost.partial = tx.cost.partial.pc[country],
+                                   tx.cost.mdr = tx.cost.mdr.pc[country],
+                                   pct.mdr= pct.mdr.pc[country],
+                                   tx.cost.partial.mdr = tx.cost.partial.mdr[country],
+                                   params=new.params[[i]])[2]
+            }
+        }
+    }
+
+    save(out,file=paste0(output_file_prefix,"_",country,"_icers_",unix.time.stamp,".rda"))
+
 }
 
 ##' Updates the parameter list for us with a set of new values from LHS

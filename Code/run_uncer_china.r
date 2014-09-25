@@ -46,7 +46,39 @@ case.dt.df <- c("china"=round(
                  "india"=round(sum(tail(india.trial[,grep("N.", colnames(india.trial))],1))*pct.first.yr,0),
                  "sa"=round(sum(tail(sa.trial[,grep("N.", colnames(india.trial))],1))*pct.first.yr,0))
 
-runLHS(nsims=20000,country="china")
+nsims <- 5000
+runLHS(nsims=nsims,
+       country="china",
+       case.dt.dif=case.dt.df,
+       orig.fits=fits,
+       per.person.dx.cost=seq(50,20000,length=300))
 
-## now call the post processing script
-## source("Code/post_proc_uncer_china.r")
+## horizons <- c(2,5,10)
+## per.person.dx.cost <- seq(50,20000,length=300) # only for sa
+## out <- array(dim=c(300,3,nsims))
+
+## print("post-processing")
+
+## for (i in 1:nsims){
+##     cat("*")
+##     for (h in seq_along(horizons)){
+##         for (t in seq_along(per.person.dx.cost)){
+##             out[t,h,i] <-
+##             calcICERFixedCosts(out=runs[[i]],
+##                                eval.times = 1:(horizons[h]*10+1),
+##                                dtx.cost=case.dt.df["china"]*per.person.dx.cost[t],
+##                                tx.suc=c(1),
+##                                tx.cost = tx.cost.pc["china"],
+##                                tx.cost.partial = tx.cost.partial.pc["china"],
+##                                tx.cost.mdr = tx.cost.mdr.pc["china"],
+##                                pct.mdr= pct.mdr.pc["china"],
+##                                tx.cost.partial.mdr = tx.cost.partial.mdr["china"],
+##                                params=new.params[[i]])[2]
+##         }
+##     }
+## }
+
+## saveRDS(out,"GeneratedData/uncer_out_china_icers_2014-09-22.rda") #  runs
+
+## ## now call the post processing script
+## ## source("Code/post_proc_uncer_china.r")

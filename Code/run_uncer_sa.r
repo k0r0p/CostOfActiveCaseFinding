@@ -40,9 +40,42 @@ china.trial <- runTBHIVMod(fit.china.2011$params,fit.china.2011$state,1,var.beta
 
 pct.first.yr <- 0.25 # pct increase in cases detected in the first year
 case.dt.df <- c("china"=round(
-                 sum(tail(china.trial[,grep("N.", colnames(india.trial))],1))*pct.first.yr,0),
-                 "india"=round(sum(tail(india.trial[,grep("N.", colnames(india.trial))],1))*pct.first.yr,0),
-                 "sa"=round(sum(tail(sa.trial[,grep("N.", colnames(india.trial))],1))*pct.first.yr,0))
+                    sum(tail(china.trial[,grep("N.", colnames(india.trial))],1))*pct.first.yr,0),
+                "india"=round(sum(tail(india.trial[,grep("N.", colnames(india.trial))],1))*pct.first.yr,0),
+                "sa"=round(sum(tail(sa.trial[,grep("N.", colnames(india.trial))],1))*pct.first.yr,0))
 
-runLHS(nsims=20000,country="sa")
+nsims <- 5000
+runLHS(nsims=nsims,
+       country="sa",
+       case.dt.dif=case.dt.df,
+       orig.fits=fits,
+       per.person.dx.cost=seq(1000,35000,length=300))
+
+## horizons <- c(2,5,10)
+## per.person.dx.cost.sa <- seq(1000,35000,length=300) # only for sa
+## out <- array(dim=c(300,3,nsims))
+
+## print("post-processing")
+
+## for (i in 1:nsims){
+##     cat("*")
+##     for (h in seq_along(horizons)){
+##         for (t in seq_along(per.person.dx.cost.sa)){
+##             out[t,h,i] <-
+##             calcICERFixedCosts(out=runs[[i]],
+##                                eval.times = 1:(horizons[h]*10+1),
+##                                dtx.cost=case.dt.df["sa"]*per.person.dx.cost.sa[t],
+##                                tx.suc=c(1),
+##                                tx.cost = tx.cost.pc["sa"],
+##                                tx.cost.partial = tx.cost.partial.pc["sa"],
+##                                tx.cost.mdr = tx.cost.mdr.pc["sa"],
+##                                pct.mdr= pct.mdr.pc["sa"],
+##                                tx.cost.partial.mdr = tx.cost.partial.mdr["sa"],
+##                                params=new.params[[i]])[2]
+##         }
+##     }
+## }
+
+## saveRDS(out,"GeneratedData/uncer_out_sa_icers_2014-09-22.rda") #  runs
+
 #source("Code/post_proc_uncer_sa.r")

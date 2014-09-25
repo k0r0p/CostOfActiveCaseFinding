@@ -184,7 +184,6 @@ make.fig.2 <- function(country="india"){
 }
 
 ## Short Term Campaigns
-##' .. content for \details{} ..
 ##' @title
 ##' @return
 ##' @author Andrew Azman
@@ -264,7 +263,10 @@ make.fig.3 <- function(){
     ## text(600,gdp.pc["china"]+200,"GDP China",cex=.5,col=1)
 
     lines(per.person.dx.cost,out[,1,2],col=2)
-    lines(c(-1000,approx(out[,1,2],per.person.dx.cost,xout=gdp.pc["india"])$y),rep(gdp.pc["india"],2),col=2,lty=2)
+    lines(c(-1000,approx(out[,1,2],
+                         per.person.dx.cost,
+                         xout=gdp.pc["india"])$y),
+          rep(gdp.pc["india"],2),col=2,lty=2)
     ## text(500,gdp.pc["india"]+200,"GDP India",cex=.5,col=2)
 
     lines(per.person.dx.cost,out[,1,3],col=3)
@@ -638,21 +640,53 @@ dev.off()
     sum(tail(two.year.sa[[1]][,grep("Mtb",colnames(two.year.sa[[1]]))],1)))
 
 ## Uncertainty Ranges for cum deaths
-## WARNING: need to load data from uncer file first
-deaths.averted.india <- sapply(runs.india,function(x)
-                         sum(tail(x[[2]][,grep("Mtb",colnames(x[[2]]))],1)) -
-                         sum(tail(x[[1]][,grep("Mtb",colnames(x[[1]]))],1)),simplify=T)
+## WARNING: need to load data from uncer file first (see ACF-uncer script)
+deaths.averted.india <- c(sapply(runs.india.1,function(x)
+                                 sum(tail(x[[2]][,grep("Mtb",colnames(x[[2]]))],1)) -
+                                 sum(tail(x[[1]][,grep("Mtb",colnames(x[[1]]))],1)),simplify=T),
+                          sapply(runs.india.2,function(x)
+                                 sum(tail(x[[2]][,grep("Mtb",colnames(x[[2]]))],1)) -
+                                 sum(tail(x[[1]][,grep("Mtb",colnames(x[[1]]))],1)),simplify=T),
+                          sapply(runs.india.3,function(x)
+                                 sum(tail(x[[2]][,grep("Mtb",colnames(x[[2]]))],1)) -
+                                 sum(tail(x[[1]][,grep("Mtb",colnames(x[[1]]))],1)),simplify=T),
+                          sapply(runs.india.4,function(x)
+                                 sum(tail(x[[2]][,grep("Mtb",colnames(x[[2]]))],1)) -
+                                 sum(tail(x[[1]][,grep("Mtb",colnames(x[[1]]))],1)),simplify=T))
 10*quantile(deaths.averted.india,c(0.025,.975)) # in a population of a million
 
-deaths.averted.china <- sapply(runs.china,function(x)
-                         sum(tail(x[[2]][,grep("Mtb",colnames(x[[2]]))],1)) -
-                         sum(tail(x[[1]][,grep("Mtb",colnames(x[[1]]))],1)),simplify=T)
+deaths.averted.china <- c(sapply(runs.china.1,function(x)
+                                 sum(tail(x[[2]][,grep("Mtb",colnames(x[[2]]))],1)) -
+                                 sum(tail(x[[1]][,grep("Mtb",colnames(x[[1]]))],1)),simplify=T),
+                          sapply(runs.china.2,function(x)
+                                 sum(tail(x[[2]][,grep("Mtb",colnames(x[[2]]))],1)) -
+                                 sum(tail(x[[1]][,grep("Mtb",colnames(x[[1]]))],1)),simplify=T),
+                          sapply(runs.china.3,function(x)
+                                 sum(tail(x[[2]][,grep("Mtb",colnames(x[[2]]))],1)) -
+                                 sum(tail(x[[1]][,grep("Mtb",colnames(x[[1]]))],1)),simplify=T),
+                          sapply(runs.china.4,function(x)
+                                 sum(tail(x[[2]][,grep("Mtb",colnames(x[[2]]))],1)) -
+                                 sum(tail(x[[1]][,grep("Mtb",colnames(x[[1]]))],1)),simplify=T))
+
 10*quantile(deaths.averted.china,c(0.025,.975)) # in a population of a million
 
-deaths.averted.sa <- sapply(runs.sa,function(x)
-                         sum(tail(x[[2]][,grep("Mtb",colnames(x[[2]]))],1)) -
-                         sum(tail(x[[1]][,grep("Mtb",colnames(x[[1]]))],1)),
-                            simplify=T)
+deaths.averted.sa <- c(sapply(runs.sa.1,function(x)
+                              sum(tail(x[[2]][,grep("Mtb",colnames(x[[2]]))],1)) -
+                              sum(tail(x[[1]][,grep("Mtb",colnames(x[[1]]))],1)),
+                              simplify=T),
+                       sapply(runs.sa.2,function(x)
+                              sum(tail(x[[2]][,grep("Mtb",colnames(x[[2]]))],1)) -
+                              sum(tail(x[[1]][,grep("Mtb",colnames(x[[1]]))],1)),
+                              simplify=T),
+                       sapply(runs.sa.3,function(x)
+                              sum(tail(x[[2]][,grep("Mtb",colnames(x[[2]]))],1)) -
+                              sum(tail(x[[1]][,grep("Mtb",colnames(x[[1]]))],1)),
+                              simplify=T),
+                       sapply(runs.sa.4,function(x)
+                              sum(tail(x[[2]][,grep("Mtb",colnames(x[[2]]))],1)) -
+                              sum(tail(x[[1]][,grep("Mtb",colnames(x[[1]]))],1)),
+                              simplify=T))
+
 10*quantile(deaths.averted.sa,c(0.025,.975))
 
 ## pecentage of deaths occuring over the time period of the intervention
@@ -871,7 +905,7 @@ dev.off()
 getICER(horiz=2.5,
         cost=5000*case.dt.dif["sa"],
         params= fits[["sa"]]$params,
-        out=sa[[2]],
+        out=two.year.sa,
         tx.cost=tx.cost.pc["sa"],
         tx.cost.partial=tx.cost.partial.pc["sa"],
         tx.cost.mdr=tx.cost.mdr.pc["sa"],
